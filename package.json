@@ -1,13 +1,14 @@
 {
-  "name": "mindmetrics-backend",
+  "name": "webapp",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "profile.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node profile.js"
   },
   "dependencies": {
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "mongodb": "^6.3.0"
+    "express": "^5.1.0",
+    "mongodb": "^7.0.0"
   }
 }
