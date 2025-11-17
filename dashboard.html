@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuro-Behavioral Stress Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css"> 
+</head>
+<body>
+    <div id="mobile-container">
+        <div id="profileModal" onclick="this.classList.remove('active')">
+            <div id="profileModalContent" class="p-4" onclick="event.stopPropagation()">
+                <div class="flex justify-end">
+                    <button onclick="document.getElementById('profileModal').classList.remove('active')" class="text-gray-400 hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-2 p-4 pt-0">
+                    <div class="flex items-center space-x-4 pb-4 border-b border-gray-700/50">
+                        <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-full flex items-center justify-center relative overflow-hidden">
+                            <img id="profileModalPhoto" src="" alt="Profile Picture" class="w-full h-full object-cover absolute opacity-0" onerror="this.style.opacity='0'; this.style.display='none'; document.getElementById('modalInitials').style.opacity='1';">
+                            <span id="modalInitials" class="text-white font-bold text-2xl z-10">...</span>
+                        </div>
+                        <div>
+                            <p id="profileName" class="text-xl text-gray-200 font-semibold">Loading Name...</p>
+                            <p id="profileEmail" class="text-sm text-gray-400">Loading Email...</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        <a href="/WebApp/profile2.html" class="flex items-center space-x-4 p-3 text-gray-300 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition duration-150">
+                            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="text-lg">My Profile (Edit Details)</span>
+                        </a>
+                        <a href="/WebApp/history.html" class="flex items-center space-x-4 p-3 text-gray-300 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition duration-150">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h-4a5 5 0 01-5-5V9a5 5 0 015-5h4a5 5 0 015 5v6a5 5 0 01-5 5z"/>
+                            </svg>
+                            <span class="text-lg">History & Logs</span>
+                        </a>
+                        <a href="/WebApp/settings.html" class="flex items-center space-x-4 p-3 text-gray-300 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition duration-150">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span class="text-lg">Settings (in Modal)</span>
+                        </a>
+                        <a href="/invite.html" class="flex items-center space-x-4 p-3 text-gray-300 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition duration-150">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0h-3c-1.018 0-1.828.183-2.568.514C8.636 21.037 8 21.617 8 22h-3v-2z"/>
+                            </svg>
+                            <span class="text-lg">Invite Friends</span>
+                        </a>
+                    </div>
+                    <a href="#" id="logoutLink" class="flex items-center space-x-4 p-3 mt-4 border-t border-gray-700/50 pt-4 text-red-400 hover:text-red-300 hover:bg-slate-800 rounded-lg transition duration-150">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="text-lg font-semibold">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <nav class="fixed top-0 z-50 glass-card border-b border-cyan-500/20 fixed-center">
+            <div class="max-w-full mx-auto px-4">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-lg flex items-center justify-center pulse-glow">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold gradient-text">MindMetrics</h1>
+                            <p class="text-xs text-gray-400">Stress Analytics</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="relative p-2 text-gray-400 hover:text-cyan-400 transition" onclick="window.location.href='/notifications.html'">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <a href="#" id="profileIconBtn"
+                            class="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:shadow-lg transition duration-200 relative overflow-hidden">
+
+                            <img id="profileIconImage" class="w-full h-full object-cover absolute opacity-0">
+
+                            <span id="profileIconInitials"
+                                class="w-full h-full flex items-center justify-center text-white font-bold text-lg 
+                                      bg-gradient-to-br from-cyan-400 to-purple-600 rounded-full">
+                                ??
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <main class="px-4 pt-20 pb-8">
+            <div id="dashboard-page" class="page-view active">
+                <div class="mb-6 text-center">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mb-2">
+                        <span class="gradient-text">Welcome back, User</span>
+                    </h2>
+                    <p class="text-sm text-gray-400">Here's your comprehensive stress analysis for today</p>
+                    <div class="mt-2 flex items-center justify-center space-x-2">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <p class="text-xs text-gray-500">Last updated: Just now</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div id="stressCard" class="glass-card stat-card rounded-xl p-4 border-l-4 border-green-400">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-semibold px-2 py-1 bg-green-500/20 text-green-400 rounded-full">Live</span>
+                        </div>
+                        <p class="text-gray-400 text-xs mb-1">Stress Level</p>
+                        <p id="stressValue" class="text-xl font-bold text-green-400">Low</p>
+                        <p class="text-xs text-gray-500 mt-1">↓ 12% from yesterday</p>
+                    </div>
+                    <div class="glass-card stat-card rounded-xl p-4 border-l-4 border-cyan-400">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-xs mb-1">Screen Time</p>
+                        <p id="screenTimeValue" class="text-xl font-bold text-cyan-400">6.5<span class="text-sm text-gray-400">h</span></p>
+                        <p class="text-xs text-gray-500 mt-1">Daily average</p>
+                    </div>
+                    <div class="glass-card stat-card rounded-xl p-4 border-l-4 border-purple-400">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-xs mb-1">Mood</p>
+                        <p id="sentimentValue" class="text-xl font-bold text-purple-400">Neutral</p>
+                        <p class="text-xs text-gray-500 mt-1">Based on 52 posts</p>
+                    </div>
+                    <div class="glass-card stat-card rounded-xl p-4 border-l-4 border-yellow-400">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-xs mb-1">Activity Score</p>
+                        <p class="text-xl font-bold text-yellow-400">78<span class="text-sm text-gray-400">/100</span></p>
+                        <p class="text-xs text-gray-500 mt-1">Good activity level</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4 mb-6">
+                    <div class="glass-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold gradient-text">Weekly Screen Time</h3>
+                            <select class="bg-slate-800 text-gray-300 text-xs rounded-lg px-2 py-1 border border-gray-700 focus:outline-none focus:border-cyan-500">
+                                <option>7 Days</option>
+                                <option>30 Days</option>
+                                <option>3 Months</option>
+                            </select>
+                        </div>
+                        <div class="h-48">
+                            <canvas id="screenTimeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold gradient-text">Top Apps Usage</h3>
+                            <span class="text-xs px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded-full">Today</span>
+                        </div>
+                        <div class="h-48">
+                            <canvas id="appUsageChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4 mb-6">
+                    <div class="glass-card rounded-xl p-4">
+                        <h3 class="text-base font-bold gradient-text mb-4">Sentiment Analysis</h3>
+                        <div class="h-48 flex items-center justify-center">
+                            <canvas id="sentimentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4">
+                        <h3 class="text-base font-bold gradient-text mb-4">24h Activity</h3>
+                        <div class="h-48">
+                            <canvas id="hourlyActivityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4">
+                        <h3 class="text-base font-bold gradient-text mb-4">Weekly Stress</h3>
+                        <div class="h-48">
+                            <canvas id="weeklyStressChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="glass-card rounded-xl p-4">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base font-bold text-white">AI-Powered Insights</h3>
+                        </div>
+                        <div id="insightsList" class="space-y-3">
+                            </div>
+                    </div>
+                    <div class="glass-card rounded-xl p-4">
+                        <h3 class="text-base font-bold text-white mb-4">Quick Actions</h3>
+                        <div class="space-y-2">
+                            <button id="refreshBtn" class="w-full py-2.5 px-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-cyan-400 hover:to-purple-500 transition transform hover:scale-[1.02] shadow-lg">
+                                <span class="flex items-center justify-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                    <span>Refresh Analysis</span>
+                                </span>
+                            </button>
+                            <button class="w-full py-2.5 px-3 bg-slate-800 text-gray-300 text-sm font-semibold rounded-lg hover:bg-slate-700 transition border border-gray-700">Export Report</button>
+                            <button class="w-full py-2.5 px-3 bg-slate-800 text-gray-300 text-sm font-semibold rounded-lg hover:bg-slate-700 transition border border-gray-700">Schedule Check-in</button>
+                        </div>
+                        <div id="loadingIndicator" class="mt-4 text-center opacity-0 transition-opacity">
+                            <div class="inline-flex items-center space-x-2 text-cyan-400">
+                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-xs">Analyzing data...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </main>
+        <nav class="fixed bottom-0 z-50 glass-card border-t border-cyan-500/20 fixed-center">
+            <div class="flex justify-around items-center h-16 w-full"> 
+                <a href="/WebApp/dashboard.html" class="nav-bottom-link flex flex-col items-center justify-center text-xs font-medium text-gray-400 transition-all duration-300">
+                    <div class="icon-badge p-2 rounded-full bg-transparent transition-all duration-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                    </div>
+                    <span class="mt-1">Dashboard</span>
+                </a>
+                <a href="/WebApp/insights.html" class="nav-bottom-link flex flex-col items-center justify-center text-xs font-medium text-gray-400 hover:text-cyan-400 transition-all duration-300">
+                    <div class="icon-badge p-2 rounded-full bg-transparent transition-all duration-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6"/>
+                        </svg>
+                    </div>
+                    <span class="mt-1">Insights</span>
+                </a>
+                <a href="/WebApp/index.html" class="nav-bottom-link flex flex-col items-center justify-center text-xs font-medium text-gray-400 hover:text-cyan-400 transition-all duration-300">
+                    <div class="icon-badge p-2 rounded-full bg-transparent transition-all duration-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 3v3M12 18v3M3 12h3M18 12h3M6.5 6.5l2.5 2.5M15 15l2.5 2.5M6.5 17.5l2.5-2.5M15 9l2.5-2.5"/>
+                        </svg>
+                    </div>
+                    <span class="mt-1">Predict</span>
+                </a>
+
+                <a href="/WebApp/settings.html" class="nav-bottom-link flex flex-col items-center justify-center text-xs font-medium text-gray-400 hover:text-cyan-400 transition-all duration-300">
+                    <div class="icon-badge p-2 rounded-full bg-transparent transition-all duration-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <span class="mt-1">Settings</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+    <script src="app.js"></script> 
+    <script type="module" src="auth.js"></script> 
+</body>
+</html>
