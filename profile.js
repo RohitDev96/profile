@@ -1,165 +1,215 @@
-// ================================================
-//   MINDMETRICS PROFILE BACKEND (Node.js + MongoDB)
-// ================================================
+// profile.js
+// MindMetrics Profile + Prediction API (Node.js + MongoDB)
 
 const express = require("express");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
+require("dotenv").config();
 
 const app = express();
-app.use(cors({ origin: "*" }));  // Allow all origins
-app.use(express.json({ limit: "25mb" })); // Allow large base64 images
+app.use(cors({ origin: "*" }));
+app.use(express.json({ limit: "25mb" }));
 
-// ------------------------------------------------
-// MONGODB CONNECTION
-// ------------------------------------------------
-const uri = "mongodb+srv://rohit127634_db_user:9y23ssKikk6H0CCO@cluster0.7koxajh.mongodb.net/?retryWrites=true&w=majority";
+// ------------- CONFIG -------------
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://rohit127634_db_user:9y23ssKikk6H0CCO@cluster0.7koxajh.mongodb.net/?retryWrites=true&w=majority";
 
-const dbName = "MindMatrics";   // <-- DB NAME
-const collectionName = "users"; // <-- COLLECTION
+const DB_NAME = "MindMatrics";
+const USERS_COLLECTION = "users";
+const PREDICTIONS_COLLECTION = "predictions";
+// ----------------------------------
 
-const client = new MongoClient(uri);
-let usersCollection;
+// Create MongoDB client (IMPORTANT)
+const client = new MongoClient(MONGO_URI);
 
-// ------------------------------------------------
-// DATABASE INIT + SCHEMA VALIDATION
-// ------------------------------------------------
-async function connectDB() {
-    try {
-        await client.connect();
-        console.log("✅ MongoDB Connected!");
+let db, usersCollection, predictionsCollection;
 
-        const db = client.db(dbName);
+// ---------------- DB INIT ----------------
+async function initDb() {
+  try {
+    await client.connect();
+    console.log("✅ Connected to MongoDB");
 
-        // Apply schema validator
-        await db.command({
-            collMod: collectionName,
-            validator: {
-                $jsonSchema: {
-                    bsonType: "object",
-                    required: ["email"],
-                    properties: {
-                        email: { bsonType: "string" },
+    db = client.db(DB_NAME);
 
-                        fullName: { bsonType: ["string", "null"] },
-                        phone: { bsonType: ["string", "null"] },
-                        bio: { bsonType: ["string", "null"] },
+    usersCollection = db.collection(USERS_COLLECTION);
 
-                        dob: { bsonType: ["string", "null"] },
-                        age: { bsonType: ["int", "null"] },
+    // Check if predictions collection exists
+    const collections = await db.listCollections({}, { nameOnly: true }).toArray();
+    const names = collections.map((c) => c.name);
 
-                        gender: { bsonType: ["string", "null"] },
-
-                        profileImage: { bsonType: ["string", "null"] }
-                    }
-                }
-            },
-            validationLevel: "moderate"
-        }).catch(async (err) => {
-            if (err.codeName === "NamespaceNotFound") {
-                // Create collection if not exists
-                await db.createCollection(collectionName, {
-                    validator: {
-                        $jsonSchema: {
-                            bsonType: "object",
-                            required: ["email"],
-                            properties: {
-                                email: { bsonType: "string" },
-                                fullName: { bsonType: ["string", "null"] },
-                                phone: { bsonType: ["string", "null"] },
-                                bio: { bsonType: ["string", "null"] },
-                                dob: { bsonType: ["string", "null"] },
-                                age: { bsonType: ["int", "null"] },
-                                gender: { bsonType: ["string", "null"] },
-                                profileImage: { bsonType: ["string", "null"] }
-                            }
-                        }
-                    }
-                });
-                console.log("📁 New users collection created!");
-            } else {
-                console.error("⚠️ Schema update error:", err);
-            }
-        });
-
-        usersCollection = db.collection(collectionName);
-        console.log("📂 Connected to users collection");
-
-    } catch (err) {
-        console.error("❌ MongoDB Connection Error:", err);
+    if (!names.includes(PREDICTIONS_COLLECTION)) {
+      await db.createCollection(PREDICTIONS_COLLECTION);
+      console.log("📁 Created predictions collection");
     }
+
+    predictionsCollection = db.collection(PREDICTIONS_COLLECTION);
+
+    // Ensure each user gets only one prediction per day
+    await predictionsCollection.createIndex(
+      { email: 1, date: 1 },
+      { unique: true }
+    );
+
+    console.log("🔐 Index ensured: predictions(email + date)");
+
+  } catch (err) {
+    console.error("❌ DB Init Error:", err);
+    process.exit(1);
+  }
 }
-connectDB();
 
-// ------------------------------------------------
-// 1️⃣ GET PROFILE BY EMAIL
-// ------------------------------------------------
+initDb();
+
+/* -------------------------
+   PROFILE API
+   ------------------------- */
+
 app.get("/get-profile-by-email/:email", async (req, res) => {
-    const email = req.params.email;
+  const email = req.params.email;
+  if (!email) return res.json({ status: "error", error: "Email missing" });
 
-    if (!email) return res.json({ status: "error", error: "Email missing" });
+  try {
+    const user = await usersCollection.findOne({ email });
+    if (!user) return res.json({ status: "empty" });
 
-    try {
-        const user = await usersCollection.findOne({ email });
+    res.json({ status: "success", profile: user });
 
-        if (!user) return res.json({ status: "empty" });
-
-        res.json({ status: "success", profile: user });
-
-    } catch (err) {
-        console.error("❌ Query Error:", err);
-        res.json({ status: "error", error: err.message });
-    }
+  } catch (err) {
+    console.error("❌ Query Error:", err);
+    res.json({ status: "error", error: err.message });
+  }
 });
 
-// ------------------------------------------------
-// 2️⃣ SAVE / UPDATE PROFILE
-// ------------------------------------------------
 app.post("/save-profile-by-email", async (req, res) => {
-    const { email, fullName, phone, bio, dob, age, gender, profileImage } = req.body;
+  const { email, fullName, phone, bio, dob, age, gender, profileImage } = req.body;
 
-    if (!email) return res.json({ status: "error", error: "Email is required" });
+  if (!email) return res.json({ status: "error", error: "Email required" });
 
-    try {
-        const ageNumber = age ? Number(age) : null;
+  try {
+    const ageNumber = age ? Number(age) : null;
 
-        const updateData = {
-            email,
-            fullName: fullName || null,
-            phone: phone || null,
-            bio: bio || null,
-            dob: dob || null,
-            age: ageNumber,
-            gender: gender || null,
-            profileImage: profileImage || null
-        };
+    const data = {
+      email,
+      fullName: fullName || null,
+      phone: phone || null,
+      bio: bio || null,
+      dob: dob || null,
+      age: Number.isFinite(ageNumber) ? ageNumber : null,
+      gender: gender || null,
+      profileImage: profileImage || null,
+      updatedAt: new Date(),
+    };
 
-        await usersCollection.updateOne(
-            { email },
-            { $set: updateData },
-            { upsert: true }
-        );
+    await usersCollection.updateOne(
+      { email },
+      { $set: data },
+      { upsert: true }
+    );
 
-        console.log("✅ Profile saved for:", email);
-        res.json({ status: "success", email });
+    console.log("✅ Profile saved:", email);
+    res.json({ status: "success", email });
 
-    } catch (err) {
-        console.error("❌ Save Error:", err);
-        res.json({ status: "error", error: err.message });
-    }
+  } catch (err) {
+    console.error("❌ Save Error:", err);
+    res.json({ status: "error", error: err.message });
+  }
 });
 
-// ------------------------------------------------
-// DEFAULT ROUTE
-// ------------------------------------------------
+/* -------------------------
+   PREDICTION API
+   ------------------------- */
+
+app.post("/savePrediction", async (req, res) => {
+  try {
+    const { email, prediction, inputs } = req.body;
+
+    const timestampIncoming = req.body.timestamp
+      ? new Date(req.body.timestamp)
+      : new Date();
+
+    const dateStr =
+      req.body.date || timestampIncoming.toISOString().split("T")[0];
+
+    if (!email)
+      return res.status(400).json({ status: "error", error: "Email required" });
+
+    // Fetch user details (name, age)
+    const user = await usersCollection.findOne({ email });
+
+    const name = user?.fullName || email.split("@")[0];
+    const age = user?.age ?? null;
+
+    const doc = {
+      email,
+      name,
+      age,
+      prediction: prediction || {},
+      inputs: inputs || {},
+      timestamp: timestampIncoming,
+      date: dateStr,
+      updatedAt: new Date(),
+    };
+
+    // Upsert (one prediction per day)
+    const filter = { email, date: dateStr };
+    const update = {
+      $set: doc,
+      $setOnInsert: { createdAt: new Date() },
+    };
+
+    const result = await predictionsCollection.updateOne(filter, update, {
+      upsert: true,
+    });
+
+    console.log(`✅ Prediction saved for ${email} on ${dateStr}`);
+
+    res.json({
+      status: "success",
+      email,
+      date: dateStr,
+      updated: result.modifiedCount,
+      created: result.upsertedCount,
+    });
+
+  } catch (err) {
+    console.error("❌ Prediction Save Error:", err);
+    res.status(500).json({ status: "error", error: err.message });
+  }
+});
+
+app.get("/get-predictions/:email", async (req, res) => {
+  const email = req.params.email;
+  if (!email) return res.json({ status: "error", error: "Email missing" });
+
+  try {
+    const items = await predictionsCollection
+      .find({ email })
+      .sort({ date: -1 })
+      .toArray();
+
+    res.json({ status: "success", predictions: items });
+
+  } catch (err) {
+    console.error("❌ Fetch Error:", err);
+    res.json({ status: "error", error: err.message });
+  }
+});
+
+/* -------------------------
+   ROOT ROUTE
+   ------------------------- */
+
 app.get("/", (req, res) => {
-    res.send("✅ MindMetrics Profile API (MongoDB) is running...");
+  res.send("✅ MindMetrics Profile & Prediction API Running");
 });
 
-// ------------------------------------------------
-// START SERVER
-// ------------------------------------------------
+/* -------------------------
+   START SERVER
+   ------------------------- */
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
