@@ -247,8 +247,9 @@ app.post("/behavioralInsights", async (req, res) => {
    // Gemini Setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
-  model: "models/gemini-pro", // correct prefix added
+  model: "models/gemini-1.0-pro", // FINAL WORKING MODEL
 });
+
 
     const prompt = `
 Analyze the following stress prediction logs from a user:
