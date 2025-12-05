@@ -244,10 +244,12 @@ app.post("/behavioralInsights", async (req, res) => {
     }));
 
     // Gemini Setup
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", // or gemini-1.5-pro if you want deeper reasoning
-    });
+   // Gemini Setup
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash-latest", // FIXED MODEL NAME
+});
+
 
     const prompt = `
 Analyze the following stress prediction logs from a user:
