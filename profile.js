@@ -260,7 +260,7 @@ const response = await ai.models.generateContent({
   contents: prompt,
 });
 
-const text = response.text().trim(); // <-- FIXED
+const text = response.output_text.trim();
 
     let patterns = JSON.parse(text);
 
