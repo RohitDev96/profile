@@ -260,11 +260,15 @@ const response = await ai.models.generateContent({
   contents: prompt,
 });
 
-const text = response.candidates[0].content.parts[0].text.trim();
+let raw = response.candidates[0].content.parts[0].text.trim();
 
-    let patterns = JSON.parse(text);
+// Remove ```json and ``` blocks if Gemini adds them
+raw = raw.replace(/```json|```/g, "").trim();
 
-    return res.json({ patterns });
+let patterns = JSON.parse(raw);
+
+return res.json({ patterns });
+
 
   } catch (err) {
     console.error("❌ Behavioral Insights Error:", err);
