@@ -204,9 +204,8 @@ app.get("/get-predictions/:email", async (req, res) => {
    AI BEHAVIORAL INSIGHTS API
    ------------------------- */
 /* -------- AI BEHAVIORAL INSIGHTS API -------- */
-const { GoogleAI } = require("@google/genai");
-const ai = new GoogleAI({ apiKey: process.env.GEMINI_API_KEY });
-
+const { GoogleGenAI } = require("@google/genai");
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post("/behavioralInsights", async (req, res) => {
   try {
@@ -256,13 +255,13 @@ Return JSON ONLY:
  "suggestion": "..."
 }
     `;
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: prompt,
+});
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt
-    });
+const text = response.text().trim(); // <-- FIXED
 
-   const text = response.text().trim(); 
     let patterns = JSON.parse(text);
 
     return res.json({ patterns });
