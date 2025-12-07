@@ -260,7 +260,7 @@ const response = await ai.models.generateContent({
   contents: prompt,
 });
 
-const text = response.output_text.trim();
+const text = response.candidates[0].content.parts[0].text.trim();
 
     let patterns = JSON.parse(text);
 
