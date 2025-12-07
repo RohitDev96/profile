@@ -203,24 +203,22 @@ app.get("/get-predictions/:email", async (req, res) => {
 /* -------------------------
    AI BEHAVIORAL INSIGHTS API
    ------------------------- */
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+/* -------- AI BEHAVIORAL INSIGHTS API -------- */
+const { GoogleGenAI } = require("@google/genai");
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post("/behavioralInsights", async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
 
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
-
-    // Fetch last 60 predictions for the user
     const logs = await predictionsCollection
       .find({ email })
-      .sort({ timestamp: -1 }) // newest first
+      .sort({ timestamp: -1 })
       .limit(60)
       .toArray();
 
-    if (!logs || logs.length === 0) {
+    if (logs.length === 0) {
       return res.json({
         patterns: {
           warning: "Not enough data to identify behavioral patterns.",
@@ -230,26 +228,15 @@ app.post("/behavioralInsights", async (req, res) => {
       });
     }
 
-    // Build compact log dataset for Gemini
-    const compactLogs = logs.map((doc) => ({
+    const compactLogs = logs.map(doc => ({
       date: doc.date,
-      timestamp: doc.timestamp,
       stressScore: Number(doc.prediction?.stressScore || 0),
-      stressClass: doc.prediction?.class || "",
       whatsapp: doc.inputs?.whatsapp || 0,
       instagram: doc.inputs?.instagram || 0,
       youtube: doc.inputs?.youtube || 0,
       sentimentScore: doc.inputs?.sentimentScore || 0,
-      dayType: doc.inputs?.dayType || "0", // 0 = weekday, 1 = weekend
+      dayType: doc.inputs?.dayType || "0"
     }));
-
-    // Gemini Setup
-   // Gemini Setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({
-  model: "models/gemini-1.0-pro", // FINAL WORKING MODEL
-});
-
 
     const prompt = `
 Analyze the following stress prediction logs from a user:
@@ -257,35 +244,25 @@ Analyze the following stress prediction logs from a user:
 ${JSON.stringify(compactLogs)}
 
 Identify:
-1. One WARNING pattern (something concerning or increasing stress)
-2. One POSITIVE pattern (a healthy habit or improvement)
-3. One ACTIONABLE SUGGESTION (behavior change that reduces stress)
+1) A WARNING pattern
+2) A POSITIVE pattern
+3) An ACTIONABLE suggestion
 
-Return STRICT JSON ONLY, like this:
+Return JSON ONLY:
 {
-  "warning": "⚠️ Evening spike in stress…",
-  "positive": "✅ Weekend recovery noticeable…",
-  "suggestion": "💡 Reducing Instagram use after 8 PM may improve…"
+ "warning": "...",
+ "positive": "...",
+ "suggestion": "..."
 }
-
-Do NOT add any markdown, explanation, commentary, or extra text.
-All insights must be short, clear, and based on the data.
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt
+    });
 
-    let patterns;
-    try {
-      patterns = JSON.parse(text);
-    } catch (e) {
-      console.error("⚠️ Gemini returned non-JSON:", text);
-      patterns = {
-        warning: "Your stress seems linked to high screen usage.",
-        positive: "On some days, reduced usage correlates with lower stress.",
-        suggestion: "Try reducing late-night social media to improve consistency.",
-      };
-    }
+    const text = response.outputText().trim();
+    let patterns = JSON.parse(text);
 
     return res.json({ patterns });
 
